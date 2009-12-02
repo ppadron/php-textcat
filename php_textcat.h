@@ -20,6 +20,8 @@
 #define PHP_TEXTCAT_H
 
 
+#define PHP_TEXTCAT_VERSION "0.1"
+
 extern zend_module_entry textcat_module_entry;
 #define phpext_textcat_ptr &textcat_module_entry
 
@@ -28,3 +30,28 @@ extern zend_module_entry textcat_module_entry;
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+
+typedef struct _php_textcat_object {
+    zend_object zo;
+    void *textcat;
+} php_textcat_object;
+
+extern zend_class_entry* textcat_ce_TextCategorizer;
+extern zend_class_entry* textcat_ce_TextCategorizerException;
+
+PHP_MINIT_FUNCTION(textcat);
+PHP_MSHUTDOWN_FUNCTION(textcat);
+PHP_RINIT_FUNCTION(textcat);
+PHP_RSHUTDOWN_FUNCTION(textcat);
+PHP_MINFO_FUNCTION(textcat);
+
+PHP_METHOD(TextCategorizer, __construct);
+PHP_METHOD(TextCategorizer, classify);
+
+#ifdef ZTS
+#define TEXTCAT_G(v) TSRMG(texcat_globals_id, zend_textcat_globals *, v)
+#else
+#define TEXTCAT_G(v) (textcat_globals.v)
+#endif
+
+#endif /* PHP_TEXTCAT_H */
