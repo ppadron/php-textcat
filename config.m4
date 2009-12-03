@@ -16,6 +16,9 @@ if test "$PHP_TEXTCAT" != "no"; then
     elif test -f $i/include/textcat.h; then
       TEXTCAT_DIR=$i
       TEXTCAT_INCDIR=$i/include
+    elif test -f $i/include/libtextcat/textcat.h; then
+      TEXTCAT_DIR=$i
+      TEXTCAT_INCDIR=$i/include/libtextcat
     fi
   done
 
