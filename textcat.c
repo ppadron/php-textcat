@@ -158,8 +158,9 @@ PHP_MSHUTDOWN_FUNCTION(textcat)
 PHP_MINFO_FUNCTION(textcat)
 {
 	php_info_print_table_start();
-	php_info_print_table_header(2, "textcat support", "enabled");
-	php_info_print_table_row(2, "textcat version", PHP_TEXTCAT_VERSION);
+	php_info_print_table_row(2, "textcat support", "enabled");
+	php_info_print_table_row(2, "extension version", PHP_TEXTCAT_VERSION);
+    php_info_print_table_row(2, "textcat version", textcat_Version());
 	php_info_print_table_end();
 
 }
