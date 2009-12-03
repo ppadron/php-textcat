@@ -186,11 +186,10 @@ PHP_METHOD(TextCategorizer, __construct)
 }
 /* }}} */
 
-
 /* {{{ proto void TextCategorizer::classify(string $text) */
 PHP_METHOD(TextCategorizer, classify)
 {
-    char *text, *result, *match;
+    char *text, *match, *result, *save_ptr;
     char **matches;
     int text_len, i;
     void *intern;
@@ -204,12 +203,33 @@ PHP_METHOD(TextCategorizer, classify)
 
     result = textcat_Classify(intern, text, text_len);
 
+	if (!result) {
+		RETURN_NULL();
+	}
+
     if (!strcmp(result, "SHORT")) {
         zend_throw_exception(textcat_ce_TextCategorizerException, "Supplied text is shorter than 25 chars");
         RETURN_NULL();
     }
 
-    RETURN_STRING(result, 1);
+	array_init(return_value);
+
+	match = strtok_r(result, "[]", &save_ptr);
+
+	if (!match) {
+		RETURN_NULL();
+	}
+
+	add_next_index_string(return_value, match, 1);
+
+	while (match != NULL) {
+
+		match = strtok_r(NULL, "[]", &save_ptr);
+
+		if (match) {
+			add_next_index_string(return_value, match, 1);
+		}
+	}
 
 }
 /* }}} */
