@@ -171,6 +171,8 @@ PHP_METHOD(TextCategorizer, __construct)
 {
     char *key;
     char *value;
+	char *filename;
+	char *dir;
     zval *config_arr;
 	php_textcat_object *obj;
 	zval *this;
@@ -184,6 +186,15 @@ PHP_METHOD(TextCategorizer, __construct)
 
     config_hash = HASH_OF(config_arr); 
 
+	filename = tempnam(&dir, NULL);
+
+	fdtmp = fopen(filename, "w+");
+
+	if (!fdtmp) {
+		zend_throw_exception(textcat_ce_TextCategorizerException, "Could not initialize textcat configuration");
+		RETURN_NULL();
+	}
+
     for (zend_hash_internal_pointer_reset(config_hash);
     zend_hash_has_more_elements(config_hash) == SUCCESS; 
     zend_hash_move_forward(config_hash)) { 
@@ -196,48 +207,37 @@ PHP_METHOD(TextCategorizer, __construct)
 
         type = zend_hash_get_current_key_ex(config_hash, &key, &keylen, &idx, 0, NULL); 
 
-        /* discard all non-associative pairs */
+        /* only "key" => "value" should be considered */
         if (type != HASH_KEY_IS_STRING) {
             continue;
         }
 
         zend_hash_get_current_data_ex(config_hash, (void**)&ppzval, NULL);
 
-        /* Duplicate the zval so that 
-         * the orignal's contents are not destroyed */ 
+        /* Duplicate the zval so that the orignal's contents are not destroyed */ 
         tmpcopy = **ppzval; 
-
         zval_copy_ctor(&tmpcopy); 
 
         /* Reset refcount & Convert */ 
         INIT_PZVAL(&tmpcopy); 
         convert_to_string(&tmpcopy); 
 
-        /* Output */ 
-        php_printf("The value of "); 
-        if (type == HASH_KEY_IS_STRING) { 
-            /* String Key / Associative */ 
-            PHPWRITE(key, keylen); 
-        } else { 
-            /* Numeric Key */ 
-            php_printf("%ld", idx); 
-        } 
-
-        php_printf(" is: "); 
-        PHPWRITE(Z_STRVAL(tmpcopy), Z_STRLEN(tmpcopy)); 
-        php_printf("\n"); 
+		fputs(Z_STRVAL(tmpcopy), fdtmp);
+		fputs("\t", fdtmp);
+		fputs(key, fdtmp);
+		fputs("\n", fdtmp);
 
         /* Toss out old copy */ 
         zval_dtor(&tmpcopy);         
     }
 
+	fclose(fdtmp);
+
 	obj = (php_textcat_object *) zend_object_store_get_object(getThis() TSRMLS_DC);
 
-/*
-    obj->textcat = textcat_Init(configfile); 
+    obj->textcat = textcat_Init(filename); 
 
 	if (!obj->textcat) zend_throw_exception(textcat_ce_TextCategorizerException, "could not initialize textcat resource");
-*/
 
 }
 /* }}} */
